@@ -38,124 +38,110 @@ var squareHtWth = 10;
 var circleRad = 6;
 var quantity = 11;
 
-// create an array storage to hold random x,y coordinates for square obstacle
+// create an array storage to hold random x,y coordinates for obstacles
 var squares = [];
-for (s = 0; s < quantity; s++) {
-    var boundsX = Math.floor((Math.random() * (canvas.width-squareHtWth)));
-    var boundsY = Math.floor((Math.random() * (canvas.height-squareHtWth)));
-    squares[s] = {x:boundsX, y:boundsY, status: 1};
-}
 var circles = [];
-for (c=0; c< quantity; c++){
-    var circleBoundsX = Math.floor((Math.random() * (canvas.width-circleRad)));
-    var circleBoundsY = Math.floor((Math.random() * (canvas.height-circleRad)));
-    circles[c] = {x:circleBoundsX, y:circleBoundsY, status:1};
-}
-var triangles = [];
-for (t=0; t< quantity; t++){
-    var triX = Math.floor((Math.random() * (canvas.width-circleRad)));
-    var triY = Math.floor((Math.random() * (canvas.width-circleRad)));
-    triangles[t] = {x:triX, y:triY, status:1};
+for (s = 0; s < quantity; s++) {
+    var pad = paddleWidth*2;
+    squares[s] = {x:ranNum(pad, (canvas.width-pad)), y:ranNum(pad, (canvas.height-pad)), status: 1};
+    circles[s]= {x:ranNum(pad, (canvas.width-pad)), y:ranNum(pad, (canvas.height-pad)), status: 1};
 }
 
-function drawSquare() {
+//random number function
+function ranNum(min, max) {
+    return Math.floor(Math.random() *(max - min + 1) + min);
+}
+
+
+//draw aesthetics
+function drawRectangles(x, y, width, height, fillColor) {
+    ctx.beginPath();
+    ctx.rect(x, y, width, height);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawCircles(x, y, r, startAngle, endAngle, fillColor) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, startAngle, endAngle);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawCollisionSquare() {
     for (s = 0; s < quantity; s++) {
         if (squares[s].status == 1) {
-            ctx.beginPath();
-            ctx.rect(squares[s].x, squares[s].y, squareHtWth, squareHtWth);
             ctx.fillStyle = 'orange';
-            ctx.fill();
-            ctx.closePath();
+            drawRectangles(squares[s].x, squares[s].y, squareHtWth, squareHtWth);
         }
     }
 }
 
-function drawCircle(){
+function drawCollisionCircle(){
     for (c=0; c<quantity; c++) {
         if (circles[c].status == 1) {
-            ctx.beginPath();
-            ctx.arc(circles[c].x, circles[c].y, circleRad, 0, Math.PI * 2);
             ctx.fillStyle = 'purple';
-            ctx.fill();
-            ctx.closePath();
+            drawCircles(circles[c].x, circles[c].y, circleRad, 0, Math.PI * 2);
         }
     }
 }
-//function drawGreen() {
-//    for (t=0; t< quantity; t++) {
-//        if (triangles[t].status == 1)
-//            ctx.beginPath();
-//            ctx.moveTo(triangles[t].x, triangles[t].y);
-//            ctx.lineTo(triangles[t].x-6, triangles[t].y+10);
-//            ctx.lineTo(triangles[t].x+6, triangles[t].y+10);
-//            ctx.fillStyle = '#7ADF7A';
-//            ctx.fill();
-//    }
-//}
 
-function collisionSquare() {
-    for (c = 0; c < quantity; c++) {
-        if (circles[c].status == 1) {
-            if (x > circles[c].x - ballRadius && x < circles[c].x + ballRadius && y > circles[c].y - ballRadius && y < circles[c].y + ballRadius) {
+function drawBall() {
+    ctx.fillStyle = 'grey';
+    drawCircles(x, y, ballRadius, 0, Math.PI*2);
+}
+
+function drawPaddleR() {
+    ctx.fillStyle = 'grey';
+    drawRectangles(paddleXR, paddleYR, paddleWidth, paddleHeight);
+}
+function drawPaddleL() {
+    ctx.fillStyle = 'grey';
+    drawRectangles(paddleXL, paddleYL, paddleWidth, paddleHeight);
+}
+
+function scoreBoard(){
+    ctx.font = "12px Arial";
+    ctx.fillStyle = "grey";
+    ctx.fillText("Right Score: " + scoreR, canvas.width-85, 20);
+    ctx.fillText("Left Score: " + scoreL, 10, 20);
+}
+
+//collision
+function col(a, b) {
+    var htwth = squareHtWth + 2;
+    return x > a - htwth && x < a + htwth && y > b - htwth && y < b + htwth;
+}
+
+function collisionCircle() {
+    for (s = 0; s < quantity; s++) {
+        if (circles[s].status == 1) {
+            if (col(circles[s].x, circles[s].y)) {
                 if (dx > 0) {
                     dx = dx + 1;
                 }
                 else if (dx < 0) {
                     dx = dx - 1;
                 }
-                circles[c].status = 0;
+                circles[s].status = 0;
             }
         }
     }
 }
 
-function collisionCircle() {
+function collisionSquare() {
     for (s = 0; s < quantity; s++) {
         if (squares[s].status == 1) {
-            if (x > squares[s].x - ballRadius && x < squares[s].x + squareHtWth + ballRadius && y > squares[s].y - ballRadius && y < squares[s].y + squareHtWth + ballRadius) {
+            if (col(squares[s].x, squares[s].y)) {
                 dx = -dx;
                 squares[s].status = 0;
             }
         }
-
     }
 }
 
-var drawBall = function() {
-    ctx.beginPath();
-    ctx.arc(x, y, ballRadius, 0, Math.PI*2);
-    ctx.fillStyle = "grey";
-    ctx.fill();
-    ctx.closePath();
-};
-
-function drawPaddleR() {
-    ctx.beginPath();
-    ctx.rect(paddleXR, paddleYR, paddleWidth, paddleHeight);
-    ctx.fillStyle = "grey";
-    ctx.fill();
-    ctx.closePath();
-}
-function drawPaddleL() {
-    ctx.beginPath();
-    ctx.rect(paddleXL, paddleYL, paddleWidth, paddleHeight);
-    ctx.fillStyle = "grey";
-    ctx.fill();
-    ctx.closePath();
-
-}
-
-function scoreRight(){
-    ctx.font = "12px Arial";
-    ctx.fillStyle = "grey";
-    ctx.fillText("Right Score: " + scoreR, canvas.width-85, 20);
-}
-
-function scoreLeft() {
-    ctx.font = "12px Arial";
-    ctx.fillStyle = "grey";
-    ctx.fillText("Left Score: " + scoreL, 10, 20);
-}
 
 function keyDownHandler(e) {
     if (e.keyCode == 38) {
@@ -189,19 +175,21 @@ function keyUpHandler(e) {
 
 // End game stats
 function endGame() {
+    var total = 'Score Right:' + scoreR + '\nScore Left: ' + scoreL;
     if (scoreR > scoreL){
-        window.alert('Score Right:' + scoreR + '\nScore Left: ' + scoreL + '\n Player Right is the Winner....Player Left is the Loser!');
+        window.alert(total + '\n Player Right you win!');
         document.location.reload();
     }
     else if (scoreL > scoreR) {
-        window.alert('Score Right:' + scoreR + '\nScore Left: ' + scoreL + '\n Player Left is the Winner....Player Right is the Loser!');
+        window.alert(total + '\n Player Left you win!');
         document.location.reload();
     }
     else if (scoreL == scoreR){
-        window.alert('Score Right:' + scoreR + '\nScore Left: ' + scoreL + '\nTie ' );
+        window.alert(total + ' \nTie ' );
         document.location.reload();
     }
 }
+
 
 //  main function
 function draw() {
@@ -209,13 +197,12 @@ function draw() {
     drawBall();
     drawPaddleR();
     drawPaddleL();
-    scoreRight();
-    scoreLeft();
-    drawSquare();
-    drawCircle();
-//    drawGreen();
+    scoreBoard();
+    drawCollisionSquare();
+    drawCollisionCircle();
     collisionSquare();
     collisionCircle();
+
 
 
 //   logic to keep ball in height bounds
@@ -225,7 +212,7 @@ function draw() {
 
 //  logic left paddle bounds + score
     else if (x < ballRadius) {
-        if (y > paddleYL && y < paddleYL + paddleHeight + (ballRadius/2)) {
+        if (y > paddleYL - ballRadius && y < paddleYL + paddleHeight + ballRadius) {
             dx = -dx;
             scoreL++;
         }
@@ -233,9 +220,11 @@ function draw() {
             return endGame();
         }
     }
+
+
 //  logic right paddle bounds + score
     else if (x > canvas.width-ballRadius) {
-        if (y > paddleYR-(ballRadius/2) && y < paddleYR + paddleHeight +(ballRadius/2)) {
+        if (y > paddleXL - ballRadius && y < paddleYL + paddleHeight + (ballRadius/2)) {
             dx = -dx;
             scoreR++;
         }
@@ -257,6 +246,7 @@ function draw() {
     if (downLeft && paddleYL < canvas.height- paddleHeight) {
         paddleYL += 7
     }
+
 // move ball
     x += dx;
     y += dy;
@@ -273,8 +263,6 @@ draw();
 
 
 
-//todo random number function to have obstacles fit within canvas
-//todo score++ for triangle hit
 </script>
 
 </body>
